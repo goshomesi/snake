@@ -19,6 +19,10 @@ public class SnakeGame extends JFrame implements KeyListener {
   private int[] snakeY = new int[GRID_WIDTH * GRID_HEIGHT];
   private int snakeLength = 5;
   private int direction = 3; // 0 = up, 1 = right, 2 = down, 3 = left
+  private int foodX;
+  private int foodY;
+  private int score = 0;
+  Food food = new Food(foodX, foodY);
   // ramdom generator
   private Random random = new Random();
 
@@ -35,6 +39,8 @@ public class SnakeGame extends JFrame implements KeyListener {
     snakeY[1] = GRID_HEIGHT / 2;
     snakeX[2] = GRID_WIDTH / 2 - 2;
     snakeY[2] = GRID_HEIGHT / 2;
+    //generira parvata hrana
+    generateFood();
   }
 
   public void paint(Graphics g) {
@@ -57,6 +63,30 @@ public class SnakeGame extends JFrame implements KeyListener {
         GRID_SIZE,
         GRID_SIZE
       );
+    }
+    //risuva hranata
+    g.setColor(Color.RED);
+    g.fillRect(
+      food.getX() * GRID_SIZE,
+      food.getY() * GRID_SIZE,
+      GRID_SIZE,
+      GRID_SIZE
+    );
+  }
+
+  public void generateFood() {
+    //random koordinati na hranata
+    foodX = random.nextInt(GRID_WIDTH);
+    foodY = random.nextInt(GRID_HEIGHT);
+    food.setX(foodX);
+    food.setY(foodY);
+    //gled adali hranata e varhu zmiqta
+    for (int i = 0; i < snakeLength; i++) {
+      //ako otnovo q slaga
+      if (snakeX[i] == food.getX() && snakeY[i] == food.getY()) {
+        generateFood();
+        return;
+      }
     }
   }
 
@@ -88,6 +118,12 @@ public class SnakeGame extends JFrame implements KeyListener {
     // gleda dali e spechelena igrata
     if (snakeLength == GRID_WIDTH * GRID_HEIGHT) {
       gameWon = true;
+    }
+    //gleda dali hranata e izqdena i slaga nova hrana
+    if (snakeX[0] == foodX && snakeY[0] == foodY) {
+      snakeLength++;
+      score++;
+      generateFood();
     }
   }
 
