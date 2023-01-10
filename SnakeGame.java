@@ -2,44 +2,66 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class SnakeGame extends JFrame implements KeyListener {
 
-  //podgotvq razmerite na ejrana i kvadratchetata
+  public String username = "";
+
+  public String getUsername() {
+    return this.username;
+  }
+
+  public void setUsername(String _username) {
+    String regex = "^\\S+$";
+    if (_username != null && _username.matches(regex)) {
+      this.username = _username;
+    }
+  }
+
+  //constants for the game
   private int WIDTH = 500;
   private int HEIGHT = 500;
   private int GRID_SIZE = 20;
   private int GRID_WIDTH = WIDTH / GRID_SIZE;
   private int GRID_HEIGHT = HEIGHT / GRID_SIZE;
+  //variables for the game
   private boolean gameOver = false;
   private boolean gameWon = false;
+  private int score = 0;
   private int[] snakeX = new int[GRID_WIDTH * GRID_HEIGHT];
   private int[] snakeY = new int[GRID_WIDTH * GRID_HEIGHT];
   private int snakeLength = 5;
-  private int direction = 3; // 0 = up, 1 = right, 2 = down, 3 = left
   private int foodX;
   private int foodY;
-  private int score = 0;
   Food food = new Food(foodX, foodY);
-  // ramdom generator
+  private int direction = 3; // 0 = up, 1 = right, 2 = down, 3 = left
+  // Set up a random number generator
   private Random random = new Random();
 
   public SnakeGame() {
+    // Set up the JFrame
     setSize(WIDTH, HEIGHT);
     setTitle("Snake Game");
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setResizable(false);
     setVisible(true);
     addKeyListener(this);
+    // Initialize the snake's starting position
     snakeX[0] = GRID_WIDTH / 2;
     snakeY[0] = GRID_HEIGHT / 2;
     snakeX[1] = GRID_WIDTH / 2 - 1;
     snakeY[1] = GRID_HEIGHT / 2;
     snakeX[2] = GRID_WIDTH / 2 - 2;
     snakeY[2] = GRID_HEIGHT / 2;
-    //generira parvata hrana
+    // Generate the first food item
     generateFood();
   }
 
@@ -55,6 +77,7 @@ public class SnakeGame extends JFrame implements KeyListener {
         g.fillRect(i * GRID_SIZE, j * GRID_SIZE, GRID_SIZE, GRID_SIZE);
       }
     }
+    // Draw the snake
     g.setColor(new Color(0, 0, 128));
     for (int i = 0; i < snakeLength; i++) {
       g.fillRect(
@@ -64,7 +87,7 @@ public class SnakeGame extends JFrame implements KeyListener {
         GRID_SIZE
       );
     }
-    //risuva hranata
+    // Draw the food
     g.setColor(Color.RED);
     g.fillRect(
       food.getX() * GRID_SIZE,
@@ -72,18 +95,56 @@ public class SnakeGame extends JFrame implements KeyListener {
       GRID_SIZE,
       GRID_SIZE
     );
+    // Draw the score
+    g.setColor(Color.WHITE);
+    g.drawString("Score: " + score, WIDTH / 2 - 50, 50);
+    // Check if the game is over
+    //        for (int i = 1; i < snakeLength; i++) {
+    //            if (snakeX[0] == snakeX[i] && snakeY[0] == snakeY[i] && snakeY.length > 5) {
+    //                g.drawString("Game Over!", WIDTH / 2 - 50, HEIGHT / 2 - 10);
+    //                gameOver = true;
+    //            }
+    //        }
+    if (gameOver) {
+      g.drawString("Game Over!", WIDTH / 2 - 50, HEIGHT / 2);
+      g.drawString( username + "'s score: " + score, WIDTH / 2 - 50, HEIGHT / 2 - 20);
+      try {
+        BufferedReader reader = new BufferedReader(
+          new FileReader("snake_game_results.txt")
+        );
+
+        String line;
+        String scoreFile = "";
+        while ((line = reader.readLine()) != null) {
+          scoreFile = line;
+        }
+        g.drawString("" + scoreFile, WIDTH / 2 - 50, HEIGHT / 2 - 10);
+
+        reader.close();
+      } catch (IOException e) {
+    
+        g.drawString(
+          "Previous score: " + score,
+          WIDTH / 2 - 50,
+          HEIGHT / 2 - 30
+        );
+      }
+    }
+    if (gameWon) {
+      g.drawString("You Won!", WIDTH / 2 - 40, HEIGHT / 2 - 10);
+    }
   }
 
   public void generateFood() {
-    //random koordinati na hranata
+    // Generate random coordinates for the food
     foodX = random.nextInt(GRID_WIDTH);
     foodY = random.nextInt(GRID_HEIGHT);
     food.setX(foodX);
     food.setY(foodY);
-    //gled adali hranata e varhu zmiqta
+    // Check if the food is spawning on top of the snake
     for (int i = 0; i < snakeLength; i++) {
-      //ako otnovo q slaga
       if (snakeX[i] == food.getX() && snakeY[i] == food.getY()) {
+        // If it is, try again
         generateFood();
         return;
       }
@@ -91,12 +152,12 @@ public class SnakeGame extends JFrame implements KeyListener {
   }
 
   public void move() {
-    // dviji z,iqta
+    // Move the snake's body
     for (int i = snakeLength - 1; i > 0; i--) {
       snakeX[i] = snakeX[i - 1];
       snakeY[i] = snakeY[i - 1];
     }
-    // dviji glavata na zmiqta
+    // Move the snake's head
     if (direction == 0) {
       snakeY[0]--;
     } else if (direction == 1) {
@@ -106,7 +167,7 @@ public class SnakeGame extends JFrame implements KeyListener {
     } else if (direction == 3) {
       snakeX[0]--;
     }
-    // gleda dali zmiqta se e udarila
+    // Check if the snake has hit a wall or itself
     if (
       snakeX[0] < 0 ||
       snakeX[0] >= GRID_WIDTH ||
@@ -115,15 +176,15 @@ public class SnakeGame extends JFrame implements KeyListener {
     ) {
       gameOver = true;
     }
-    // gleda dali e spechelena igrata
-    if (snakeLength == GRID_WIDTH * GRID_HEIGHT) {
-      gameWon = true;
-    }
-    //gleda dali hranata e izqdena i slaga nova hrana
+    // Check if the snake has eaten the food
     if (snakeX[0] == foodX && snakeY[0] == foodY) {
       snakeLength++;
       score++;
       generateFood();
+    }
+    // Check if the player has won
+    if (snakeLength == GRID_WIDTH * GRID_HEIGHT) {
+      gameWon = true;
     }
   }
 
@@ -144,17 +205,29 @@ public class SnakeGame extends JFrame implements KeyListener {
 
   public void keyTyped(KeyEvent e) {}
 
+  public void writeToFile(String filename) {
+    try {
+      BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+      writer.write("Previous score: " + score);
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void main(String[] args) {
+    String username = JOptionPane.showInputDialog(null, "Enter your username:");
     SnakeGame game = new SnakeGame();
+    game.setUsername(username);
     while (!game.gameOver && !game.gameWon) {
       game.move();
       game.repaint();
       try {
-        //fps
         Thread.sleep(200);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     }
+    game.writeToFile("snake_game_results.txt");
   }
 }
