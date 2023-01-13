@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import java.awt.Font;
 
 public class SnakeGame extends JFrame implements KeyListener {
 
@@ -27,8 +28,8 @@ public class SnakeGame extends JFrame implements KeyListener {
   }
 
   //constants for the game
-  private int WIDTH = 500;
-  private int HEIGHT = 500;
+  private int WIDTH = 400;
+  private int HEIGHT = 400;
   private int GRID_SIZE = 20;
   private int GRID_WIDTH = WIDTH / GRID_SIZE;
   private int GRID_HEIGHT = HEIGHT / GRID_SIZE;
@@ -66,19 +67,20 @@ public class SnakeGame extends JFrame implements KeyListener {
   }
 
   public void paint(Graphics g) {
+    g.setFont(new Font("Arial", Font.BOLD, 20));
     // Draw the background
     for (int i = 0; i < GRID_WIDTH; i++) {
       for (int j = 0; j < GRID_HEIGHT; j++) {
         if ((i + j) % 2 == 0) {
-          g.setColor(new Color(0, 128, 0));
+          g.setColor(new Color(95, 141, 78));
         } else {
-          g.setColor(new Color(0, 200, 0));
+          g.setColor(new Color(164, 190, 123));
         }
         g.fillRect(i * GRID_SIZE, j * GRID_SIZE, GRID_SIZE, GRID_SIZE);
       }
     }
     // Draw the snake
-    g.setColor(new Color(0, 0, 128));
+    g.setColor(new Color(33, 146, 255));
     for (int i = 0; i < snakeLength; i++) {
       g.fillRect(
         snakeX[i] * GRID_SIZE,
@@ -97,7 +99,7 @@ public class SnakeGame extends JFrame implements KeyListener {
     );
     // Draw the score
     g.setColor(Color.WHITE);
-    g.drawString("Score: " + score, WIDTH / 2 - 50, 50);
+    g.drawString("Score: " + score, 10, 50);
     // Check if the game is over
     //        for (int i = 1; i < snakeLength; i++) {
     //            if (snakeX[0] == snakeX[i] && snakeY[0] == snakeY[i] && snakeY.length > 5) {
@@ -106,8 +108,8 @@ public class SnakeGame extends JFrame implements KeyListener {
     //            }
     //        }
     if (gameOver) {
-      g.drawString("Game Over!", WIDTH / 2 - 50, HEIGHT / 2);
-      g.drawString( username + "'s score: " + score, WIDTH / 2 - 50, HEIGHT / 2 - 20);
+      g.drawString("Game Over!", WIDTH / 2 - 50, HEIGHT / 2 - 40);
+      g.drawString( username + "'s score: " + score, WIDTH / 2 - 50, HEIGHT / 2);
       try {
         BufferedReader reader = new BufferedReader(
           new FileReader("snake_game_results.txt")
@@ -118,7 +120,7 @@ public class SnakeGame extends JFrame implements KeyListener {
         while ((line = reader.readLine()) != null) {
           scoreFile = line;
         }
-        g.drawString("" + scoreFile, WIDTH / 2 - 50, HEIGHT / 2 - 10);
+        g.drawString("" + scoreFile, WIDTH / 2 - 50, HEIGHT / 2 + 40);
 
         reader.close();
       } catch (IOException e) {
@@ -223,7 +225,7 @@ public class SnakeGame extends JFrame implements KeyListener {
       game.move();
       game.repaint();
       try {
-        Thread.sleep(200);
+        Thread.sleep(80);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
